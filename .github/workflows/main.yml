@@ -1,0 +1,38 @@
+
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download project files
+        uses: actions/checkout@v4
+
+      - name: Extract project ZIP
+        run: |
+          mkdir -p buildsrc
+          unzip -q SmartFileOrganizer-Android15-Phone-Build.zip -d buildsrc
+          echo "PROJECT_DIR=buildsrc/SmartFileOrganizer" >> $GITHUB_ENV
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build APK
+        run: gradle -p "$PROJECT_DIR" --no-daemon assembleDebug
+
+      - name: Save APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SmartFileOrganizer-APK
+          path: buildsrc/SmartFileOrganizer/app/build/outputs/apk/debug/app-debug.apk
